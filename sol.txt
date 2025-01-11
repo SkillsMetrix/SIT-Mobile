@@ -1,34 +1,67 @@
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React, { useState } from "react";
-import { CameraView, useCameraPermissions } from "expo-camera";
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import * as Contacts from 'expo-contacts';
+import { useEffect, useState } from 'react';
 
-export default function App() {
-  const [facing, setFacing] = useState("back");
-  const [permission, requestPermission] = useCameraPermissions();
+export default function ContactsApp() {
+  let [error, setError] = useState(undefined);
+  let [contacts, setContacts] = useState(undefined);
 
-  if (!permission) {
-    return <View />;
+  useEffect(() => {
+    (async () => {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status === "granted") {
+        const { data } = await Contacts.getContactsAsync({
+          fields: [ Contacts.Fields.Birthday, Contacts.Fields.Emails, Contacts.Fields.FirstName, Contacts.Fields.LastName, Contacts.Fields.PhoneNumbers]
+        });
+
+        if (data.length > 0) {
+          setContacts(data);
+        } else {
+          setError("No contacts found");
+        }
+      } else {
+        setError("Permission to access contacts denied.");
+      }
+    })();
+  }, []);
+
+  let getContactData = (data, property) => {
+    if (data) {
+      return data.map((data, index) => {
+        return (
+          <View key={index}>
+            <Text>{data.label}: {data[property]}</Text>
+          </View>
+        )
+      });
+    }
   }
-  if (!permission.granted) {
-    return (
-      <View>
-        <Text style={{ textAlign: "center" }}>Permission denied</Text>
-        <Button onPress={requestPermission} title="grant permission"></Button>
-      </View>
-    );
+
+  let getContactRows = () => {
+    if (contacts !== undefined) {
+      return contacts.map((contact, index) => {
+        return (
+          <View key={index} style={styles.contact}>
+            <Text>Name: {contact.firstName} {contact.lastName}</Text>
+            {contact.birthday ? <Text>Birthday: {contact.birthday.month}/{contact.birthday.day}/{contact.birthday.year}</Text> : undefined}
+            {getContactData(contact.phoneNumbers, "number")}
+            {getContactData(contact.emails, "email")}
+          </View>
+        );
+      });
+    } else {
+      return <Text>Awaiting contacts...</Text>
+    }
   }
-  function toggleCameraFacing() {
-    setFacing((curent) => (curent === "back" ? "front" : "back"));
-  }
+
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing}>
-        <View style={styles.buttonConatiner}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-            <Text style={styles.text}>Flip Camera</Text>
-          </TouchableOpacity>
-        </View>
-      </CameraView>
+      <ScrollView>
+        {getContactRows()}
+      </ScrollView>
+      <Text>{error}</Text>
+      <StatusBar style="auto" />
     </View>
   );
 }
@@ -36,25 +69,11 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  camera: {
-    flex: 1,
-  },
-  buttonConatiner: {
-    flex: 1,
-    flexDirection: "row",
-    backgroundColor: "transparent",
-    margin: 64,
-  },
-  button: {
-    flex: 1,
-    alignSelf: "flex-end",
-    alignItems: "center",
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "white",
-  },
+  contact: {
+    marginVertical: 8
+  }
 });
