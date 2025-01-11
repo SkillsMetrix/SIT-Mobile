@@ -1,34 +1,36 @@
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React, { useState } from "react";
-import { CameraView, useCameraPermissions } from "expo-camera";
 
-export default function CameraApp() {
-  const [facing, setFacing] = useState("back");
-  const [permission, requestPermission] = useCameraPermissions();
 
-  if (!permission) {
-    return <View />;
-  }
-  if (!permission.granted) {
-    return (
-      <View>
-        <Text style={{ textAlign: "center" }}>Permission denied</Text>
-        <Button onPress={requestPermission} title="grant permission"></Button>
-      </View>
-    );
-  }
-  function toggleCameraFacing() {
-    setFacing((curent) => (curent === "back" ? "front" : "back"));
-  }
+import { Button, StyleSheet, Text, View } from 'react-native'
+import React from 'react'
+
+export default function MainApp() {
+
+    showAlert=()=>{
+        alert('user added')
+    }
+  return (
+    <View>
+      <Button title='Demo Button' onPress={showAlert}></Button>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({})
+
+
+
+---------------
+
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View } from 'react-native';
+import MainApp from './components/MainApp';
+
+export default function App() {
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing}>
-        <View style={styles.buttonConatiner}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-            <Text style={styles.text}>Flip Camera</Text>
-          </TouchableOpacity>
-        </View>
-      </CameraView>
+      <Text>Welcome to SIT React Native</Text>
+      <MainApp/>
+      <StatusBar style="auto" />
     </View>
   );
 }
@@ -36,25 +38,8 @@ export default function CameraApp() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-  },
-  camera: {
-    flex: 1,
-  },
-  buttonConatiner: {
-    flex: 1,
-    flexDirection: "row",
-    backgroundColor: "transparent",
-    margin: 64,
-  },
-  button: {
-    flex: 1,
-    alignSelf: "flex-end",
-    alignItems: "center",
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "white",
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
